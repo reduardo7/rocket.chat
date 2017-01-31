@@ -1,0 +1,50 @@
+version: "2"
+
+services:
+
+  chat:
+    image: rocket.chat #stable
+    #image: rocketchat/rocket.chat #latest
+    volumes:
+      - ./.data/chat/uploads:/app/uploads
+    ports:
+      - 888:3000
+    links:
+      - chat-db:db
+    environment:
+      - "ROOT_URL=http://eduardocuomo.tk:888"
+      - "ADMIN_USERNAME=reduardo7"
+      - "ADMIN_PASS=red7#rocketchat"
+      - "ADMIN_EMAIL=reduardo7@gmail.com"
+      - "MAIL_URL=smtp://smtp.email"
+      #- "MONGO_URL=mongodb://db:27017/rocketchat"
+    restart: always
+
+  # (add the bot user first and change the password before starting this image)
+  chat-bot-hubot:
+    image: rocketchat/hubot-rocketchat
+    environment:
+      - ROCKETCHAT_URL=rocketchat:3000
+      - ROCKETCHAT_ROOM=
+      - LISTEN_ON_ALL_PUBLIC=true
+      # Create first!
+      - ROCKETCHAT_USER=bot.hubot
+      - ROCKETCHAT_PASSWORD=red7#bot-hubot
+      - BOT_NAME=bot
+      # you can add more scripts as you'd like here, they need to be installable by npm
+      - EXTERNAL_SCRIPTS=hubot-help,hubot-seen,hubot-links,hubot-diagnostics,hubot-google,hubot-reddit,hubot-bofh,hubot-bookmark,hubot-shipit,hubot-maps
+      - RESPOND_TO_DM=true
+      - RESPOND_TO_EDITED=true
+    links:
+      - chat:rocketchat
+    volumes:
+      - ./.data/chat/scripts:/home/hubot/scripts
+    ports:
+      - 8881:8080
+    restart: always
+
+  chat-db:
+    image: mongo:3.0
+    volumes:
+      - ./.data/chat/db:/data/db
+    restart: always
